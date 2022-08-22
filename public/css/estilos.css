@@ -1,0 +1,21 @@
+html, body, #app {
+    height: 100%;
+}
+
+#app {
+    display: grid;
+    grid-template-rows: 56px 1fr 75px;
+}
+
+.footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 75px;
+    background-color: #333;
+    color: #fff;
+}
+
+.footer p {
+    margin-bottom: 0;
+}
