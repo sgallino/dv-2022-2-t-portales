@@ -63,3 +63,5 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [\App\Http\Controllers\HomeController::class, 'home']);
 
 Route::get('nosotros', [\App\Http\Controllers\NosotrosController::class, 'index']);
+
+Route::get('admin/productos', [\App\Http\Controllers\AdminPeliculasController::class, 'index']);

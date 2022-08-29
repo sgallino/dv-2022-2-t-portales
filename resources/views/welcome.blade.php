@@ -1,45 +1,31 @@
-<!DOCTYPE html>
-<html lang="es">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+{{--
+Extendemos/heredamos del template de layouts/main.blade.php con la directiva de Blade @extends()
+Esta directiva va a reciribr como parámetro la ruta al template, partiendo de la carpeta [resources/views],
+sin la extensión ".blade.php", y reemplazando las "/" por ".".
 
-        <title>Laravel</title>
+Es decir, la ruta [layouts/main.blade.php] se transforma en [layouts.main].
+--}}
+@extends('layouts.main')
 
-        <link rel="stylesheet" href="css/bootstrap.min.css">
-        <link rel="stylesheet" href="css/estilos.css">
-    </head>
-    <body>
-        <div id="app">
-            <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                <div class="container-fluid">
-                    <a class="navbar-brand" href="#">DV Películas</a>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Abrir/cerrar menú de navegación">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse" id="navbar">
-                        <ul class="navbar-nav">
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">Home</a>
-                                <!-- <a class="nav-link active" aria-current="page" href="#">Home</a> -->
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="nosotros">Nosotros</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
+{{--
+Cuando como contenido de un @section solo queremos poner un string, entonces en vez de abrir y cerrar:
+    @section('name') contenido @endsection
 
-            <main>
-                <div class="container py-4">
-                    <h1>Hola :D</h1>
-                </div>
-            </main>
+Podemos usar un segundo parámetro en el @section, y omitir el @endsection:
 
-            <footer class="footer">
-                <p>Da Vinci &copy; 2022</p>
-            </footer>
-        </div>
-    </body>
-</html>
+    @section('name', 'contenido')
+--}}
+{{--@section('title') Página Principal @endsection--}}
+@section('title', 'Página Principal')
+
+{{--
+Cualquier contenido que pongamos a continuación se va a sumar al contenido del template heredado.
+Por defecto, va a ponerlo _al comienzo_ del archivo, en este caso, antes del <!DOCTYPE html>.
+
+Para que esto no ocurra, tenemos que aclarar en qué espacio cedido por el template heredado (vía la
+directiva @yield) queremos ubicar nuestro código.
+Esto lo logramos con la directiva @section('nombre') y @endsection
+--}}
+@section('main')
+<h1>Hola :D</h1>
+@endsection
