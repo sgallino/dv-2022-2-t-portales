@@ -59,9 +59,27 @@ use Illuminate\Support\Facades\Route;
  * "home"), podemos registrar la ruta a ese controller pasando como segundo parámetro un array.
  * Este array debe recibir como primer valor el nombre completo (FQN) de la clase, y como segundo
  * valor el nombre del método de la clase.
+ *
+ * Las rutas pueden tener algunas configuraciones extras, como por ejemplo un "nombre".
+ * El nombre de la ruta es algo interno (no impacta en nada el HTML generado), pero Laravel permite que
+ * creemos las URLs de las rutas a partir del nombre de la misma.
+ * Esto es útil porque no siempre los nombres de las URLs son "cómodos" para el desarrollo, ya que por
+ * ejemplo puede pasar que queramos cambiar alguno de los segmentos de la URL. Si hacemos eso, y los links
+ * estaban generados con la URL, tendríamos que actualizar todo nuestro proyecto.
+ * En cambio, si lo hacemos por el nombre, solo debemos cambiar la URL en la ruta, y todo lo demás se
+ * actualiza solito.
  */
-Route::get('/', [\App\Http\Controllers\HomeController::class, 'home']);
+Route::get('/', [\App\Http\Controllers\HomeController::class, 'home'])
+    ->name('home');
 
-Route::get('nosotros', [\App\Http\Controllers\NosotrosController::class, 'index']);
+Route::get('nosotros', [\App\Http\Controllers\NosotrosController::class, 'index'])
+    ->name('nosotros');
 
-Route::get('admin/productos', [\App\Http\Controllers\AdminPeliculasController::class, 'index']);
+Route::get('admin/peliculas', [\App\Http\Controllers\AdminPeliculasController::class, 'index'])
+    ->name('admin.peliculas.listado');
+
+Route::get('admin/peliculas/nueva', [\App\Http\Controllers\AdminPeliculasController::class, 'nuevaForm'])
+    ->name('admin.peliculas.nueva.form');
+
+Route::post('admin/peliculas/nueva', [\App\Http\Controllers\AdminPeliculasController::class, 'nuevaGrabar'])
+    ->name('admin.peliculas.nueva.grabar');

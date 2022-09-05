@@ -61,7 +61,7 @@ Es idéntico a escribir:
                             <a class="nav-link" href="{{ url('nosotros') }}">Nosotros</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url('admin/productos') }}">Admin Películas</a>
+                            <a class="nav-link" href="{{ route('admin.peliculas.listado') }}">Admin Películas</a>
                         </li>
                     </ul>
                 </div>
