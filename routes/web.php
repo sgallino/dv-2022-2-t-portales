@@ -83,3 +83,30 @@ Route::get('admin/peliculas/nueva', [\App\Http\Controllers\AdminPeliculasControl
 
 Route::post('admin/peliculas/nueva', [\App\Http\Controllers\AdminPeliculasController::class, 'nuevaGrabar'])
     ->name('admin.peliculas.nueva.grabar');
+
+/*
+ * Por supuesto, muchas veces vamos a necesitar tener segmentos "dinámicos" en la URL (es decir, cuyo valor
+ * puede variar y queremos poder capturar). Para definirlos, los escribimos con el formato {nombre}, donde
+ * 'nombre' sería el nombre de la variable que queremos recibir con el valor en el método del controller.
+ */
+Route::get('admin/peliculas/{id}', [\App\Http\Controllers\AdminPeliculasController::class, 'ver'])
+    ->name('admin.peliculas.ver')
+//    ->where('id', '[0-9]+')
+    ->whereNumber('id');
+
+Route::get('admin/peliculas/{id}/editar', [\App\Http\Controllers\AdminPeliculasController::class, 'editarForm'])
+    ->name('admin.peliculas.editar.form')
+    ->whereNumber('id');
+
+Route::post('admin/peliculas/{id}/editar', [\App\Http\Controllers\AdminPeliculasController::class, 'editarEjecutar'])
+    ->name('admin.peliculas.editar.ejecutar')
+    ->whereNumber('id');
+
+
+Route::get('admin/peliculas/{id}/eliminar', [\App\Http\Controllers\AdminPeliculasController::class, 'eliminarConfirmar'])
+    ->name('admin.peliculas.eliminar.confirmar')
+    ->whereNumber('id');
+
+Route::post('admin/peliculas/{id}/eliminar', [\App\Http\Controllers\AdminPeliculasController::class, 'eliminarEjecutar'])
+    ->name('admin.peliculas.eliminar.ejecutar')
+    ->whereNumber('id');

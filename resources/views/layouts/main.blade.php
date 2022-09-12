@@ -68,10 +68,15 @@ Es idéntico a escribir:
             </div>
         </nav>
 
-        <main>
-            <div class="container py-4">
+        <main class="container py-4">
+            {{-- Mensajes de estado --}}
+            {{-- Para acceder a variables de sesión de Laravel, usamos la fachada "Session". --}}
+            @if(Session::has('status.message'))
+            <div class="alert alert-{{ Session::get('status.type') ?? 'info' }} mb-4">{!! Session::get('status.message') !!}</div>
+            @endif
+            <section>
                 @yield('main')
-            </div>
+            </section>
         </main>
 
         <footer class="footer">

@@ -52,4 +52,20 @@ class Pelicula extends Model
     // Esto es importante, para evitar que usuarios maliciosos puedan cargar datos que no deberían en las
     // peticiones de creación o edición.
     protected $fillable = ['titulo', 'precio', 'fecha_estreno', 'descripcion', 'portada', 'portada_descripcion'];
+
+    public const VALIDATE_RULES = [
+//            'titulo' => ['required', 'min:2'],
+        'titulo' => 'required|min:2',
+        'precio' => 'required|numeric|min:0',
+        'fecha_estreno' => 'required',
+    ];
+
+    public const VALIDATE_MESSAGES = [
+        'titulo.required' => 'El título de la película no puede quedar vacío.',
+        'titulo.min' => 'El título de la película debe tener al menos :min caracteres.',
+        'precio.required' => 'El precio de la película no puede quedar vacío.',
+        'precio.numeric' => 'El precio de la película debe ser un número.',
+        'precio.min' => 'El precio de la película debe ser un número positivo.',
+        'fecha_estreno.required' => 'La fecha de estreno no puede quedar vacía.',
+    ];
 }
