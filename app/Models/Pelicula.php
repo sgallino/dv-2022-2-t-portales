@@ -51,7 +51,7 @@ class Pelicula extends Model
     // ("mass assignment").
     // Esto es importante, para evitar que usuarios maliciosos puedan cargar datos que no deberían en las
     // peticiones de creación o edición.
-    protected $fillable = ['titulo', 'precio', 'fecha_estreno', 'descripcion', 'portada', 'portada_descripcion'];
+    protected $fillable = ['pais_id', 'titulo', 'precio', 'fecha_estreno', 'descripcion', 'portada', 'portada_descripcion'];
 
     public const VALIDATE_RULES = [
 //            'titulo' => ['required', 'min:2'],

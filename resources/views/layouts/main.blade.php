@@ -74,6 +74,7 @@ Es idéntico a escribir:
             @if(Session::has('status.message'))
             <div class="alert alert-{{ Session::get('status.type') ?? 'info' }} mb-4">{!! Session::get('status.message') !!}</div>
             @endif
+
             <section>
                 @yield('main')
             </section>

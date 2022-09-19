@@ -90,10 +90,22 @@ class AdminPeliculasController extends Controller
         // Si queremos todos salvo alguno que otro, podemos usar el método except().
         $data = $request->except(['_token']); // Pedimos todos salvo el token de CSRF.
 
-//        echo "<pre>";
-//        print_r($data);
-//        echo "</pre>";
-        // TODO: Upload de la portada...
+        if($request->hasFile('portada')) {
+            $portada = $request->file('portada');
+            // Generamos un nombre para la portada.
+            // Esto va a ser la fecha y hora actual, seguida de un guión bajo, seguido del nombre de la
+            // película convertido a un "slug".
+            // Para convertir un string a un "slug", Laravel tiene un método "slug" en la clase de ayuda
+            // "Str".
+            $data['portada'] = date('YmdHis') . "_" . \Str::slug($data['titulo']) . "." . $portada->extension();
+
+            // Forma 1: Guardamos el archivo en su ubicación final usando el método "move()".
+            $portada->move(public_path('imgs'), $data['portada']);
+
+            // Forma 2: Guardamos el archivo usando la API de Storage (filesystem) de Laravel.
+            // El tercer parámetro es el "disco" de Laravel que queremos utilizar.
+//            $portada->storeAs('imgs', $data['portada'], 'public');
+        }
 
         // Finalmente, podemos tratar de grabar.
         // Para grabar, podemos o:
@@ -129,10 +141,35 @@ class AdminPeliculasController extends Controller
 
         $data = $request->except(['_token']);
 
-        // TODO: Upload de imagen...
+        if($request->hasFile('portada')) {
+            $portada = $request->file('portada');
+            // Generamos un nombre para la portada.
+            // Esto va a ser la fecha y hora actual, seguida de un guión bajo, seguido del nombre de la
+            // película convertido a un "slug".
+            // Para convertir un string a un "slug", Laravel tiene un método "slug" en la clase de ayuda
+            // "Str".
+            $data['portada'] = date('YmdHis') . "_" . \Str::slug($data['titulo']) . "." . $portada->extension();
+
+            // Forma 1: Guardamos el archivo en su ubicación final usando el método "move()".
+            $portada->move(public_path('imgs'), $data['portada']);
+
+            // Forma 2: Guardamos el archivo usando la API de Storage (filesystem) de Laravel.
+            // El tercer parámetro es el "disco" de Laravel que queremos utilizar.
+//            $portada->storeAs('imgs', $data['portada'], 'public');
+
+            // Guardamos el nombre de la portada actual para eliminarla después si el editar tuvo éxito.
+            $portadaVieja = $pelicula->portada;
+        } else {
+            $portadaVieja = null;
+        }
 
         // Editamos :)
         $pelicula->update($data);
+
+        if($portadaVieja != null && file_exists(public_path('imgs/' . $portadaVieja))) {
+            unlink(public_path('imgs/' . $portadaVieja));
+//            unlink(storage_path('public/imgs/' . $portadaVieja));
+        }
 
         // Redireccionamos al listado de películas.
         return redirect()
@@ -157,8 +194,15 @@ class AdminPeliculasController extends Controller
         // Buscamos la película para verificar que en efecto existe.
         $pelicula = Pelicula::findOrFail($id);
 
+        $portadaVieja = $pelicula->portada;
+
         // La borramos.
         $pelicula->delete();
+
+        if($portadaVieja != null && file_exists(public_path('imgs/' . $portadaVieja))) {
+            unlink(public_path('imgs/' . $portadaVieja));
+//            unlink(storage_path('public/imgs/' . $portadaVieja));
+        }
 
         // Redireccionamos al listado de películas.
         // En cada redireccionamiento, podemos agregar variables de sesión de tipo "flash" fácilmente con

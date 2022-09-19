@@ -80,6 +80,15 @@
                 class="form-control"
             >{{ old('descripcion', $pelicula->descripcion) }}</textarea>
         </div>
+        <div class="mb-3" id="portada-actual">
+            <p>Portada actual</p>
+            @if($pelicula->portada != null && file_exists(public_path('imgs/' . $pelicula->portada)))
+                <img src="{{ url('imgs/' . $pelicula->portada) }}" alt="" class="mw-100">
+            @else
+                <p><i>Sin portada</i></p>
+            @endif
+            <p>Si no querés cambiar la portada, dejá el campo de la portada vacío.</p>
+        </div>
         <div class="mb-3">
             <label for="portada" class="form-label">Portada</label>
             <input
@@ -87,6 +96,7 @@
                 id="portada"
                 name="portada"
                 class="form-control"
+                aria-describedby="portada-actual"
             >
         </div>
         <div class="mb-3">
