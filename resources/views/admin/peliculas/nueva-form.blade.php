@@ -3,6 +3,8 @@
 // que sea una instancia de la clase "ViewErrorBag". Esto lo hace para que no tengamos que estar preguntando
 // si esa variable existe o no cada vez que queramos usar mensajes de error.
 /** @var \Illuminate\Support\ViewErrorBag $errors */
+/** @var \Illuminate\Database\Eloquent\Collection|\App\Models\Pais[] $paises */
+/** @var \Illuminate\Database\Eloquent\Collection|\App\Models\Genero[] $generos */
 ?>
 @extends('layouts.main')
 
@@ -55,6 +57,31 @@
         </div>
         <div class="mb-3">
             <label
+                for="pais_id"
+                class="form-label @error('pais_id') text-danger @enderror"
+            >País de Origen</label>
+            <select
+                id="pais_id"
+                name="pais_id"
+                class="form-control @error('pais_id') is-invalid mb-1 @enderror"
+                @error('pais_id') aria-describedby="error-pais_id" @enderror
+            >
+            @foreach($paises as $pais)
+                <option
+                    value="{{ $pais->pais_id }}"
+{{--                    @if($pais->pais_id == old('pais_id')) selected @endif--}}
+                    @selected($pais->pais_id == old('pais_id'))
+                >
+                    {{ $pais->nombre }}
+                </option>
+            @endforeach
+            </select>
+            @error('pais_id')
+            <div class="text-danger" id="error-pais_id">{{ $message }}</div>
+            @enderror
+        </div>
+        <div class="mb-3">
+            <label
                 for="fecha_estreno"
                 class="form-label @error('fecha_estreno') text-danger @enderror"
             >Fecha de Estreno</label>
@@ -98,6 +125,27 @@
                 value="{{ old('portada_descripcion') }}"
             >
         </div>
+
+        <fieldset class="mb-3">
+            <legend>Géneros</legend>
+
+            @foreach($generos as $genero)
+            <div class="form-check form-check-inline">
+                <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="genero-{{ $genero->genero_id }}"
+                    name="generos[]"
+                    value="{{ $genero->genero_id }}"
+{{--                    @if(in_array($genero->genero_id, old('generos'))) checked @endif--}}
+                    @checked(in_array($genero->genero_id, old('generos', [])))
+{{--                    @checked(old('generos') !== null && in_array($genero->genero_id, old('generos')))--}}
+                >
+                <label for="genero-{{ $genero->genero_id }}" class="form-check-label">{{ $genero->nombre }}</label>
+            </div>
+            @endforeach
+        </fieldset>
+
         <button type="submit" class="btn btn-primary">Publicar</button>
     </form>
 @endsection

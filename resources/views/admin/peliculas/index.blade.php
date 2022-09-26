@@ -18,6 +18,8 @@
         <th>ID</th>
         <th>Título</th>
         <th>Precio</th>
+        <th>País de Origen</th>
+        <th>Géneros</th>
         <th>Fecha de Estreno</th>
         <th>Acciones</th>
     </tr>
@@ -28,6 +30,21 @@
         <td>{{ $pelicula->pelicula_id }}</td>
         <td>{{ $pelicula->titulo }}</td>
         <td>$ {{ $pelicula->precio }}</td>
+        <td>{{ $pelicula->pais->abreviatura }}</td>
+        <td>
+            {{--@if($pelicula->generos->isNotEmpty())
+                @foreach($pelicula->generos as $genero)
+                    <span class="badge bg-secondary">{{ $genero->nombre }}</span>
+                @endforeach
+            @else
+                No especificado.
+            @endif--}}
+            @forelse($pelicula->generos as $genero)
+                <span class="badge bg-secondary">{{ $genero->nombre }}</span>
+            @empty
+                No especificado.
+            @endforelse
+        </td>
         <td>{{ $pelicula->fecha_estreno }}</td>
         <td>
             <a href="{{ route('admin.peliculas.ver', ['id' => $pelicula->pelicula_id]) }}" class="btn btn-primary">Ver</a>

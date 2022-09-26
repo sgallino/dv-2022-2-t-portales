@@ -17,6 +17,8 @@ return new class extends Migration
             $table->tinyIncrements('genero_id');
             $table->string('nombre', 50);
             $table->timestamps();
+
+            $table->index('nombre');
         });
     }
 

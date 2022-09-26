@@ -58,50 +58,5 @@ class PeliculasSeeder extends Seeder
                 'updated_at' => now(),
             ],
         ]);
-
-        DB::table('peliculas_tienen_generos')->insert([
-            [
-                'pelicula_id' => 1,
-                'genero_id' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'pelicula_id' => 1,
-                'genero_id' => 2,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'pelicula_id' => 1,
-                'genero_id' => 8,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'pelicula_id' => 2,
-                'genero_id' => 7,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'pelicula_id' => 2,
-                'genero_id' => 9,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'pelicula_id' => 3,
-                'genero_id' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'pelicula_id' => 3,
-                'genero_id' => 5,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
     }
 }

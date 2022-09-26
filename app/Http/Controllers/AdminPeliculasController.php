@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Genero;
+use App\Models\Pais;
 use App\Models\Pelicula;
 use Illuminate\Http\Request;
 
@@ -13,7 +15,23 @@ class AdminPeliculasController extends Controller
         // Esto retorna una "Collection" de instancias Pelicula, representando los datos de la tabla.
         // Una Collection es una clase que "envuelve" un array, y brinda muchísimos métodos para interactuar
         // con él.
-        $peliculas = Pelicula::all();
+//        $peliculas = Pelicula::all();
+        /*
+         |--------------------------------------------------------------------------
+         | Carga de relaciones
+         |--------------------------------------------------------------------------
+         | El método "all()" solo sirve cuando queremos traer _todos_ los registros
+         | de una tabla, sin ninguna aclaración o requisito extra.
+         | Si queremos agregar cualquier otra cosa, ya sea carga de relaciones,
+         | filtros, límites de cantidad de registros, etc, tenemos que reemplazar el
+         | "all()" por "get()", precedido de los nuevos requerimientos que queremos
+         | que el query tenga.
+         | Por ejemplo, si queremos cargar algunas relaciones definidas en el modelo,
+         | podemos usar el método "with()", que recibe un string o array de strings
+         | con los nombres de las relaciones que queremos cargar.
+         */
+        $peliculas = Pelicula::with(['pais', 'generos'])->get();
+
 
         // Si queremos que la vista reciba algún valor, como por ejemplo la lista de películas, tenemos que
         // proveérselo a través del segundo parámetro de la función "view()", que debe ser un array
@@ -44,7 +62,10 @@ class AdminPeliculasController extends Controller
 
     public function nuevaForm()
     {
-        return view('admin.peliculas.nueva-form');
+        return view('admin.peliculas.nueva-form', [
+            'paises' => Pais::orderBy('nombre')->get(),
+            'generos' => Genero::orderBy('nombre')->get(),
+        ]);
     }
 
     public function nuevaGrabar(Request $request)
@@ -87,6 +108,11 @@ class AdminPeliculasController extends Controller
         // los que le pidamos por parámetro.
 //        $data = $request->input();
 
+//        echo "<pre>";
+//        print_r($request->input());
+//        echo "</pre>";
+//        exit;
+
         // Si queremos todos salvo alguno que otro, podemos usar el método except().
         $data = $request->except(['_token']); // Pedimos todos salvo el token de CSRF.
 
@@ -114,6 +140,37 @@ class AdminPeliculasController extends Controller
         // El método create() retorna la instancia creada con los datos de la película.
         $pelicula = Pelicula::create($data);
 
+        /*
+         |--------------------------------------------------------------------------
+         | Alta de géneros
+         |--------------------------------------------------------------------------
+         | Para guardar datos de una tabla pivot, nosotros teníamos que primero hacer
+         | el INSERT en la tabla principal, obtener el ID, y luego hacer un INSERT de,
+         | uno por uno, todos los valores de la tabla pivot.
+         | Los primeros dos pasos (el INSERT en la tabla principal y la obtención del
+         | ID) lo tenemos en la línea anterior, cuando hacemos el create() y capturamos
+         | el objeto creado.
+         | Para hacer el alta en la tabla pivot, que si recordamos de Programación 2
+         | era algo un poco engorroso, Laravel nos ofrece algunos métodos para hacer
+         | nuestra vida mucho más simple.
+         | https://laravel.com/docs/9.x/eloquent-relationships#updating-many-to-many-relationships
+         |
+         | En resumen, Eloquent tiene 3 métodos para manejar la carga de datos en
+         | una tabla pivot:
+         | - attach()
+         | - detach()
+         | - sync()
+         |
+         | Hablemos de "attach()".
+         | Este método permite agregar uno o más IDs a la tabla pivot de una relación de
+         | n:m.
+         */
+        $generos = $data['generos'] ?? []; // Obtenemos el array de ids de géneros.
+
+        // Agregamos esos géneros a la película. Noten que el acceso a la relación es como _método_, y no
+        // como _propiedad_.
+        $pelicula->generos()->attach($generos);
+
         // Redireccionamos al listado de películas.
         return redirect()
             ->route('admin.peliculas.listado')
@@ -129,6 +186,8 @@ class AdminPeliculasController extends Controller
 
         return view('admin.peliculas.editar-form', [
             'pelicula' => $pelicula,
+            'paises' => Pais::orderBy('nombre')->get(),
+            'generos' => Genero::orderBy('nombre')->get(),
         ]);
     }
 
@@ -166,6 +225,18 @@ class AdminPeliculasController extends Controller
         // Editamos :)
         $pelicula->update($data);
 
+        /*
+         |--------------------------------------------------------------------------
+         | Géneros
+         |--------------------------------------------------------------------------
+         | Hacemos uso del método "sync()" de la relación (noten que accedemos al
+         | _método_ de la relación, no a la _propiedad_) para actualizar los géneros.
+         | sync() se encarga de dejar solamente en la tabla pivot los ids que le
+         | pasemos como argumento. Si faltan, los agrega, si sobran, los elimina.
+         | TODO: Transacciones.
+         */
+        $pelicula->generos()->sync($data['generos'] ?? []);
+
         if($portadaVieja != null && file_exists(public_path('imgs/' . $portadaVieja))) {
             unlink(public_path('imgs/' . $portadaVieja));
 //            unlink(storage_path('public/imgs/' . $portadaVieja));
@@ -195,6 +266,10 @@ class AdminPeliculasController extends Controller
         $pelicula = Pelicula::findOrFail($id);
 
         $portadaVieja = $pelicula->portada;
+
+        // Borramos cualquier género que pueda haber para la película con el método "detach()".
+        // Nuevamente, noten que el método lo llamamos desde el _método_ (no _propiedad_) de la relación.
+        $pelicula->generos()->detach();
 
         // La borramos.
         $pelicula->delete();

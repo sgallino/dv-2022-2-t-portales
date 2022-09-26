@@ -20,6 +20,9 @@ return new class extends Migration
             $table->string('nombre', 125);
             $table->char('abreviatura', 3)->comment('Por ejemplo: ARG, BRA, etc');
             $table->timestamps();
+
+            // Creamos un índice para el nombre.
+            $table->index('nombre');
         });
     }
 

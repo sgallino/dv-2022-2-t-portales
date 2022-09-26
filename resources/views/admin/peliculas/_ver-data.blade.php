@@ -20,6 +20,16 @@
         <dl>
             <dt>Precio</dt>
             <dd>$ {{ $pelicula->precio }}</dd>
+            <dt>País de Origen</dt>
+            <dd>{{ $pelicula->pais->nombre }} ({{ $pelicula->pais->abreviatura }})</dd>
+            <dt>Géneros</dt>
+            <dd>
+                @forelse($pelicula->generos as $genero)
+                    <span class="badge bg-secondary">{{ $genero->nombre }}</span>
+                @empty
+                    No especificado.
+                @endforelse
+            </dd>
             <dt>Fecha de Estreno</dt>
             <dd>{{ $pelicula->fecha_estreno }}</dd>
         </dl>
