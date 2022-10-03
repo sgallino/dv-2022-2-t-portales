@@ -60,9 +60,25 @@ Es idéntico a escribir:
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url('nosotros') }}">Nosotros</a>
                         </li>
+{{--                        @if(Auth::check())--}}
+                        @auth
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('admin.peliculas.listado') }}">Admin Películas</a>
                         </li>
+                        <li class="nav-item">
+{{--                            <a class="nav-link" href="{{ route('auth.logout') }}">Cerrar Sesión</a>--}}
+                            <form action="{{ route('auth.logout') }}" method="post">
+                                @csrf
+                                <button type="submit" class="btn">Cerrar Sesión ({{ Auth::user()->email }})</button>
+                            </form>
+                        </li>
+                        @elseguest
+{{--                        @else--}}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('auth.login.form') }}">Iniciar Sesión</a>
+                        </li>
+                        @endauth
+{{--                        @endif--}}
                     </ul>
                 </div>
             </div>
