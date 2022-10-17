@@ -24,6 +24,7 @@ class PeliculasSeeder extends Seeder
             [
                 'pelicula_id' => 1,
                 'pais_id' => 1,
+                'categoria_id' => 1,
                 'titulo' => 'El Señor de los Anillos: La Comunidad del Anillo',
                 'precio' => 1999,
                 'fecha_estreno' => '2001-01-03',
@@ -36,6 +37,7 @@ class PeliculasSeeder extends Seeder
             [
                 'pelicula_id' => 2,
                 'pais_id' => 2,
+                'categoria_id' => 2,
                 'titulo' => 'El Discurso del Rey',
                 'precio' => 2199,
                 'fecha_estreno' => '2014-05-17',
@@ -48,6 +50,7 @@ class PeliculasSeeder extends Seeder
             [
                 'pelicula_id' => 3,
                 'pais_id' => 1,
+                'categoria_id' => 4,
                 'titulo' => 'La Matrix',
                 'precio' => 1599,
                 'fecha_estreno' => '1999-11-22',

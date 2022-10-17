@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @property int $pelicula_id
  * @property int $pais_id
+ * @property int $categoria_id
  * @property string $titulo
  * @property int $precio
  * @property string $fecha_estreno
@@ -19,9 +21,13 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Pais $pais
+ * @property-read \App\Models\Categoria $categoria
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Genero[] $generos
+ * @property-read int|null $generos_count
  * @method static \Illuminate\Database\Eloquent\Builder|Pelicula newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Pelicula newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Pelicula query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Pelicula whereCategoriaId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Pelicula wherePaisId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Pelicula whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Pelicula whereDescripcion($value)
@@ -33,8 +39,6 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Pelicula whereTitulo($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Pelicula whereUpdatedAt($value)
  * @mixin \Eloquent
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Genero[] $generos
- * @property-read int|null $generos_count
  */
 class Pelicula extends Model
 {
@@ -73,6 +77,91 @@ class Pelicula extends Model
         'precio.min' => 'El precio de la película debe ser un número positivo.',
         'fecha_estreno.required' => 'La fecha de estreno no puede quedar vacía.',
     ];
+
+    /*
+     |--------------------------------------------------------------------------
+     | Accessors & Mutators
+     |--------------------------------------------------------------------------
+     | Un Accessor/Mutator es una función que nos permite transformar los valores
+     | de un atributo del modelo al momento de leerlos o asignarlos,
+     | respectivamente.
+     | Tenemos que crear un método con el nombre del atributo en formato
+     | camelCase, y que indique en el hint del retorno la clase Attribute de
+     | Eloquent.
+     | El método DEBE ser protected.
+     */
+    protected function precio(): Attribute
+    {
+        // Retornamos el método make().
+        // Este método acepta 2 parámetros opcionales:
+        // 1. $get. Closure. Función que recibe como argumento el valor actual
+        //  del atributo, y debe retornar su nuevo valor.
+        // 2. $set. Closure. Función que recibe como argumento el valoe que se
+        //  está asignando, y debe retornar el valor que debe ser asignado.
+//        return Attribute::make(
+//            function($value) {
+//                return $value / 100;
+//            },
+//            function($value) {
+//                return $value * 100;
+//            }
+//        );
+
+        // El código de arriba funciona, pero no es muy claro de leer.
+        // Tiene 2 problemas, podríamos decir:
+        // 1. Si no tenemos bien presente el orden de las propiedades, es fácil confundir
+        // cuál método es el de lectura (accessor/get) y cuál el de escritura (mutator/set).
+        // 2. Es un poco "boilerplatey", es decir, tiene mucho código extra necesario para
+        // funcionar: Escribir function($value) { return ... }
+
+        // El primer problema, lo podríamos resolver con comentarios. Pero es aún mejor si
+        // podemos hacerlo usando funcionalidades del lenguaje, como los "named arguments".
+        // Normalmente, los argumentos se pasan a los parámetros de la función en base a su
+        // posición.
+        // Por ejemplo, consideremos la función de php setcookie().
+        // Esta función recibe 7 (!) argumentos.
+        //  setcookie(
+        //    string $name,
+        //    string $value = "",
+        //    int $expires_or_options = 0,
+        //    string $path = "",
+        //    string $domain = "",
+        //    bool $secure = false,
+        //    bool $httponly = false
+        //  ): bool
+        // Supongamos que necesitamos definir una cookie, con su valor y nombre, y que sea
+        // httpOnly (que es el 7mo parámetro). Todos los otros parámetros no me interesan.
+        // Esto requeriría pasar a todos los valores desde el 3ro al 6to algún default,
+        // para no modificar su comportamiento, ya que no es nuestra intención. Esto
+        // quedaría, por ejemplo:
+        //  setcookie('nombre', 'Juan', 0, "", "", false, true); // El último "true" es el que cambiamos
+        // Es fácil confundirse, poner algún valor mal, y además es incómodo de leer. No
+        // queda claro cuáles son los valores que quisimos modificar, y cuáles están solo
+        // para poder llegar al parámetro que queremos.
+        // Para mejorar notablemente nuestra experiencia en estos casos, php 8 agregó estos
+        // "named arguments", que permiten que nosotros asociemos los argumentos a los
+        // parámetros por el _nombre_ del parámetro, en vez de su posición (piensen algo
+        // como la diferencia entre arrays secuenciales y asociativos).
+        // Usando los named arguments, el setcookie podría cambiar a:
+        //  setcookie(name: 'nombre', value: 'Juan', httponly: true);
+
+        // El 2do problema no tiene una fácil solución, a menos que usemos las arrow
+        // functions de php.
+        // Las arrow functions (php 7.4+= tiene una sintaxis muy parecida a la de JS, pero
+        // con algunos comportamientos particulares en php:
+        // 1. No pueden tener un cuerpo de función. Solo pueden retornar una expresión.
+        // 2. Tienen automáticamente acceso a las variables del contexto que las contiene sin
+        //  necesidad de pasarlas con el "use".
+        // Sintaxis:
+        // fn (parametros) => expresiónRetorno
+
+//        $centavos = 100;
+        return Attribute::make(
+            get: fn ($value) => $value / 100,
+            set: fn ($value) => $value * 100,
+        );
+    }
+
 
     /*
      |--------------------------------------------------------------------------
@@ -120,6 +209,15 @@ class Pelicula extends Model
             'genero_id'
         )
             /*->orderBy('nombre')*/; // Si quieren que vengan ordenados alfabéticamente.
+    }
+
+    public function categoria()
+    {
+        return $this->belongsTo(
+            Categoria::class,
+            'categoria_id',
+            'categoria_id',
+        );
     }
 
     /*

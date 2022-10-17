@@ -30,7 +30,7 @@ class AdminPeliculasController extends Controller
          | podemos usar el método "with()", que recibe un string o array de strings
          | con los nombres de las relaciones que queremos cargar.
          */
-        $peliculas = Pelicula::with(['pais', 'generos'])->get();
+        $peliculas = Pelicula::with(['pais', 'generos', 'categoria'])->get();
 
 
         // Si queremos que la vista reciba algún valor, como por ejemplo la lista de películas, tenemos que

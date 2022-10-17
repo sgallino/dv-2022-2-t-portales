@@ -23,7 +23,7 @@
                 >
             </div>
             @error('email')
-            <div class="mb-xº13 text-danger"><span class="visually-hidden">Error:</span> {{ $message }}</div>
+            <div class="mb-3 text-danger"><span class="visually-hidden">Error:</span> {{ $message }}</div>
             @enderror
             <div class="mb-3">
                 <label for="password" class="form-label">Password</label>

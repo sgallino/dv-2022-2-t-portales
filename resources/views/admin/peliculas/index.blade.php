@@ -20,6 +20,7 @@
         <th>Precio</th>
         <th>País de Origen</th>
         <th>Géneros</th>
+        <th>Categoría</th>
         <th>Fecha de Estreno</th>
         <th>Acciones</th>
     </tr>
@@ -45,6 +46,7 @@
                 No especificado.
             @endforelse
         </td>
+        <td>{{ $pelicula->categoria->abreviatura }}</td>
         <td>{{ $pelicula->fecha_estreno }}</td>
         <td>
             <a href="{{ route('admin.peliculas.ver', ['id' => $pelicula->pelicula_id]) }}" class="btn btn-primary">Ver</a>

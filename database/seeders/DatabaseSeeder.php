@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         // Pedimos que ejecute este Seeder.
+        $this->call(CategoriaSeeder::class);
         $this->call(PaisesSeeder::class);
         $this->call(GenerosSeeder::class);
         $this->call(PeliculasSeeder::class);

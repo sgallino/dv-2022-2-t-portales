@@ -26,6 +26,11 @@ class Kernel extends HttpKernel
     /**
      * The application's route middleware groups.
      *
+     * Por ejemplo, estos dos grupos de "web" y "api" se usan para las rutas que se definen en los archivos
+     * que llevan esos mismos nombres.
+     * La asignación de estos middlewares a las rutas (así como el registro mismo de los archivos de rutas)
+     * los pueden ver en la clase [App\Providers\RouteServiceProvider].
+     *
      * @var array<string, array<int, class-string|string>>
      */
     protected $middlewareGroups = [
@@ -63,5 +68,7 @@ class Kernel extends HttpKernel
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+
+        'mayor-edad' => \App\Http\Middleware\EsMayorDeEdad::class,
     ];
 }

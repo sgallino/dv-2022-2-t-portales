@@ -99,9 +99,7 @@ Route::middleware(['auth'])
     ->controller(\App\Http\Controllers\AdminPeliculasController::class)
     ->group(function() {
         Route::get('admin/peliculas', 'index')
-            ->name('admin.peliculas.listado')
-            // Restringimos el acceso a solo usuarios autenticados.
-            ->middleware(['auth']);
+            ->name('admin.peliculas.listado');
 
         Route::get('admin/peliculas/nueva', 'nuevaForm')
             ->name('admin.peliculas.nueva.form');
@@ -117,7 +115,8 @@ Route::middleware(['auth'])
         Route::get('admin/peliculas/{id}', 'ver')
             ->name('admin.peliculas.ver')
 //    ->where('id', '[0-9]+')
-            ->whereNumber('id');
+            ->whereNumber('id')
+            ->middleware('mayor-edad');
 
         Route::get('admin/peliculas/{id}/editar', 'editarForm')
             ->name('admin.peliculas.editar.form')
@@ -135,8 +134,16 @@ Route::middleware(['auth'])
         Route::post('admin/peliculas/{id}/eliminar', 'eliminarEjecutar')
             ->name('admin.peliculas.eliminar.ejecutar')
             ->whereNumber('id');
-
     });
+
+
+Route::get('peliculas/{id}/confirmar-mayoria-edad', [\App\Http\Controllers\ConfirmarMayoriaEdadController::class, 'confirmarForm'])
+    ->middleware('auth')
+    ->name('confirmar-mayoria-edad.form');
+
+Route::post('peliculas/{id}/confirmar-mayoria-edad', [\App\Http\Controllers\ConfirmarMayoriaEdadController::class, 'confirmarEjecutar'])
+    ->middleware('auth')
+    ->name('confirmar-mayoria-edad.ejecutar');
 
 //Route::get('admin/peliculas', [\App\Http\Controllers\AdminPeliculasController::class, 'index'])
 //    ->name('admin.peliculas.listado')
