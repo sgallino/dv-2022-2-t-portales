@@ -101,6 +101,9 @@ Route::middleware(['auth'])
         Route::get('admin/peliculas', 'index')
             ->name('admin.peliculas.listado');
 
+        Route::get('admin/peliculas/papelera', 'papelera')
+            ->name('admin.peliculas.papelera');
+
         Route::get('admin/peliculas/nueva', 'nuevaForm')
             ->name('admin.peliculas.nueva.form');
 
@@ -133,6 +136,14 @@ Route::middleware(['auth'])
 
         Route::post('admin/peliculas/{id}/eliminar', 'eliminarEjecutar')
             ->name('admin.peliculas.eliminar.ejecutar')
+            ->whereNumber('id');
+
+        Route::post('admin/peliculas/{id}/eliminar-definitivamente', 'eliminarDefinitivamenteEjecutar')
+            ->name('admin.peliculas.eliminar-definitivamente.ejecutar')
+            ->whereNumber('id');
+
+        Route::post('admin/peliculas/{id}/recuperar', 'recuperarEjecutar')
+            ->name('admin.peliculas.recuperar.ejecutar')
             ->whereNumber('id');
     });
 

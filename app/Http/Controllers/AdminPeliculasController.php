@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Genero;
 use App\Models\Pais;
 use App\Models\Pelicula;
+use Barryvdh\Debugbar\Facades\Debugbar;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminPeliculasController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Le pedimos a Eloquent que traiga todas las películas, a través del modelo Pelicula.
         // Esto retorna una "Collection" de instancias Pelicula, representando los datos de la tabla.
@@ -30,8 +32,40 @@ class AdminPeliculasController extends Controller
          | podemos usar el método "with()", que recibe un string o array de strings
          | con los nombres de las relaciones que queremos cargar.
          */
-        $peliculas = Pelicula::with(['pais', 'generos', 'categoria'])->get();
+        /*
+         |--------------------------------------------------------------------------
+         | Paginación y buscador
+         |--------------------------------------------------------------------------
+         | Para la paginación, como vimos en la documentación, tenemos el método
+         | paginate() del query builder y Eloquent. Este método reemplaza al get(),
+         | y como argumento le pasamos cuántos registros por página queremos que
+         | se muestren.
+         |
+         | Para hacer el buscador, vamos a necesitar hacer algunas cosas más.
+         | Primero, nos aseguramos de tener inyectada en el método del controller la
+         | instancia de Request. Esto es necesario para obtener los datos que lleguen
+         | del formulario vía el query string.
+         | Segundo, vamos a necesitar separar el query en, al menos, tres partes:
+         | 1. La preparación básica del query (la tabla, las relaciones, etc)
+         | 2. Agregar las condiciones de búsqueda, si las hay.
+         | 3. Ejecutar el query.
+         */
+//        $peliculas = Pelicula::with(['pais', 'generos', 'categoria'])->get();
+        $builder = Pelicula::with(['pais', 'generos', 'categoria']);
 
+        // Capturamos los parámetros de búsqueda, y vemos si tenemos que agregarlos.
+        // Nota: Todo este manejo del query, incluyendo los parámetros de búsqueda, podrían ser una clase
+        // aparte.
+
+        $paramsBuscar = [
+            'titulo' => $request->query('titulo') ?? null,
+        ];
+
+        if($paramsBuscar['titulo']) {
+            $builder->where('titulo', 'LIKE', '%' . $paramsBuscar['titulo'] . '%');
+        }
+
+        $peliculas = $builder->paginate(2)->withQueryString();
 
         // Si queremos que la vista reciba algún valor, como por ejemplo la lista de películas, tenemos que
         // proveérselo a través del segundo parámetro de la función "view()", que debe ser un array
@@ -39,6 +73,19 @@ class AdminPeliculasController extends Controller
         // vista.
         return view('admin/peliculas/index', [
             'peliculas' => $peliculas,
+            'paramsBuscar' => $paramsBuscar,
+        ]);
+    }
+
+    public function papelera()
+    {
+        // withTrashed() agrega los registros que estén marcados como eliminados.
+        // onlyTrashed() solo trae los registros que estén marcados como eliminados.
+        $peliculas = Pelicula::onlyTrashed()->with(['pais', 'generos', 'categoria'])->paginate(2);
+
+        return view('admin/peliculas/papelera', [
+            'peliculas' => $peliculas,
+//            'paramsBuscar' => [],
         ]);
     }
 
@@ -138,7 +185,7 @@ class AdminPeliculasController extends Controller
         // 1. Instanciar una Pelicula, cargar las propiedades, y pedirle que se graben.
         // 2. Usar el método "static" Pelicula::create para crearlo.
         // El método create() retorna la instancia creada con los datos de la película.
-        $pelicula = Pelicula::create($data);
+
 
         /*
          |--------------------------------------------------------------------------
@@ -165,19 +212,34 @@ class AdminPeliculasController extends Controller
          | Este método permite agregar uno o más IDs a la tabla pivot de una relación de
          | n:m.
          */
-        $generos = $data['generos'] ?? []; // Obtenemos el array de ids de géneros.
+        try {
+            DB::transaction(function() use ($data) {
+                $pelicula = Pelicula::create($data);
+                // Agregamos esos géneros a la película. Noten que el acceso a la relación es como _método_, y no
+                // como _propiedad_.
+                $generos = $data['generos'] ?? []; // Obtenemos el array de ids de géneros.
+                $pelicula->generos()->attach($generos);
+            });
 
-        // Agregamos esos géneros a la película. Noten que el acceso a la relación es como _método_, y no
-        // como _propiedad_.
-        $pelicula->generos()->attach($generos);
+            // Redireccionamos al listado de películas.
+            return redirect()
+                ->route('admin.peliculas.listado')
+                // Noten que como queremos imprimir este string como HTML (evidenciado por la <b>), escapamos
+                // con la función e() el título de la película para evitar la inyección de HTML.
+                ->with('status.message', 'La película <b>' . e($data['titulo']) . '</b> fue creada exitosamente.')
+                ->with('status.type', 'success');
+        } catch(\Throwable $e) {
+            // Guardamos en el Debugbar el mensaje de error.
+            Debugbar::error($e);
 
-        // Redireccionamos al listado de películas.
-        return redirect()
-            ->route('admin.peliculas.listado')
-            // Noten que como queremos imprimir este string como HTML (evidenciado por la <b>), escapamos
-            // con la función e() el título de la película para evitar la inyección de HTML.
-            ->with('status.message', 'La película <b>' . e($pelicula->titulo) . '</b> fue creada exitosamente.')
-            ->with('status.type', 'success');
+            // En producción, probablemente querríamos guardar esto en algún log.
+
+            return redirect()
+                ->route('admin.peliculas.nueva.form')
+                ->with('status.message', 'Ocurrió un error inesperado. La película <b>' . e($data['titulo']) . '</b> no pudo ser creada.')
+                ->with('status.type', 'danger')
+                ->withInput(); // withInput() envía los datos del form para que podamos accederlos con "old()".
+        }
     }
 
     public function editarForm(int $id)
@@ -223,8 +285,6 @@ class AdminPeliculasController extends Controller
         }
 
         // Editamos :)
-        $pelicula->update($data);
-
         /*
          |--------------------------------------------------------------------------
          | Géneros
@@ -233,22 +293,92 @@ class AdminPeliculasController extends Controller
          | _método_ de la relación, no a la _propiedad_) para actualizar los géneros.
          | sync() se encarga de dejar solamente en la tabla pivot los ids que le
          | pasemos como argumento. Si faltan, los agrega, si sobran, los elimina.
-         | TODO: Transacciones.
          */
-        $pelicula->generos()->sync($data['generos'] ?? []);
+        /*
+         |--------------------------------------------------------------------------
+         | Transacciones
+         |--------------------------------------------------------------------------
+         | Forma 1: Manejando la transacción "manualmente".
+         */
+        /*try {
+            DB::beginTransaction();
+            $pelicula->update($data);
+            // Fingimos que algo sale mal lanzando una Exception.
+//            throw new \Exception('Error simulado de la base de datos.');
+            $pelicula->generos()->sync($data['generos'] ?? []);
 
-        if($portadaVieja != null && file_exists(public_path('imgs/' . $portadaVieja))) {
-            unlink(public_path('imgs/' . $portadaVieja));
-//            unlink(storage_path('public/imgs/' . $portadaVieja));
+            if($portadaVieja != null && file_exists(public_path('imgs/' . $portadaVieja))) {
+                unlink(public_path('imgs/' . $portadaVieja));
+    //            unlink(storage_path('public/imgs/' . $portadaVieja));
+            }
+
+            DB::commit();
+
+            // Redireccionamos al listado de películas.
+            return redirect()
+                ->route('admin.peliculas.listado')
+                // Noten que como queremos imprimir este string como HTML (evidenciado por la <b>), escapamos
+                // con la función e() el título de la película para evitar la inyección de HTML.
+                ->with('status.message', 'La película <b>' . e($pelicula->titulo) . '</b> fue actualizada exitosamente.')
+                ->with('status.type', 'success');
+        } catch(\Throwable $e) {
+            DB::rollBack();
+
+            // Guardamos en el Debugbar el mensaje de error.
+            Debugbar::error($e);
+
+            // En producción, probablemente querríamos guardar esto en algún log.
+
+            return redirect()
+                ->route('admin.peliculas.editar.form', ['id' => $pelicula->pelicula_id])
+                ->with('status.message', 'Ocurrió un error inesperado. La película <b>' . e($pelicula->titulo) . '</b> no pudo ser actualizada.')
+                ->with('status.type', 'danger')
+                ->withInput(); // withInput() envía los datos del form para que podamos accederlos con "old()".
+        }*/
+        /*
+         |--------------------------------------------------------------------------
+         | Transacciones
+         |--------------------------------------------------------------------------
+         | Forma 2: Usando el método transaction().
+         | Este método recibe un callback como parámetro con el código que queremos
+         | ejecutar en la transacción. Si algo sale mal, lanza un Exception.
+         | En php, las funciones no tienen acceso a las variables de los ámbitos o
+         | contextos ("scopes") contenedores automáticamente, como sucede en JS.
+         | Si queremos que una o más variables estén disponibles, tenemos que
+         | indicarlas explícitamente con la instrucción "use".
+         */
+        try {
+            DB::transaction(function() use ($pelicula, $data) {
+                $pelicula->update($data);
+                // Fingimos que algo sale mal lanzando una Exception.
+//                throw new \Exception('Error simulado de la base de datos.');
+                $pelicula->generos()->sync($data['generos'] ?? []);
+            });
+
+            if($portadaVieja != null && file_exists(public_path('imgs/' . $portadaVieja))) {
+                unlink(public_path('imgs/' . $portadaVieja));
+    //            unlink(storage_path('public/imgs/' . $portadaVieja));
+            }
+
+            // Redireccionamos al listado de películas.
+            return redirect()
+                ->route('admin.peliculas.listado')
+                // Noten que como queremos imprimir este string como HTML (evidenciado por la <b>), escapamos
+                // con la función e() el título de la película para evitar la inyección de HTML.
+                ->with('status.message', 'La película <b>' . e($pelicula->titulo) . '</b> fue actualizada exitosamente.')
+                ->with('status.type', 'success');
+        } catch(\Throwable $e) {
+            // Guardamos en el Debugbar el mensaje de error.
+            Debugbar::error($e);
+
+            // En producción, probablemente querríamos guardar esto en algún log.
+
+            return redirect()
+                ->route('admin.peliculas.editar.form', ['id' => $pelicula->pelicula_id])
+                ->with('status.message', 'Ocurrió un error inesperado. La película <b>' . e($pelicula->titulo) . '</b> no pudo ser actualizada.')
+                ->with('status.type', 'danger')
+                ->withInput(); // withInput() envía los datos del form para que podamos accederlos con "old()".
         }
-
-        // Redireccionamos al listado de películas.
-        return redirect()
-            ->route('admin.peliculas.listado')
-            // Noten que como queremos imprimir este string como HTML (evidenciado por la <b>), escapamos
-            // con la función e() el título de la película para evitar la inyección de HTML.
-            ->with('status.message', 'La película <b>' . e($pelicula->titulo) . '</b> fue actualizada exitosamente.')
-            ->with('status.type', 'success');
     }
 
     public function eliminarConfirmar(int $id)
@@ -269,7 +399,7 @@ class AdminPeliculasController extends Controller
 
         // Borramos cualquier género que pueda haber para la película con el método "detach()".
         // Nuevamente, noten que el método lo llamamos desde el _método_ (no _propiedad_) de la relación.
-        $pelicula->generos()->detach();
+//        $pelicula->generos()->detach();
 
         // La borramos.
         $pelicula->delete();
@@ -289,5 +419,44 @@ class AdminPeliculasController extends Controller
             // con la función e() el título de la película para evitar la inyección de HTML.
             ->with('status.message', 'La película <b>' . e($pelicula->titulo) . '</b> fue eliminada exitosamente.')
             ->with('status.type', 'success');
+    }
+
+    public function recuperarEjecutar(int $id)
+    {
+        Pelicula::onlyTrashed()->findOrFail($id)->restore();
+
+        return redirect()
+            ->route('admin.peliculas.papelera')
+            ->with('status.type', 'success')
+            ->with('status.message', 'La película fue restablecida correctamente.');
+    }
+
+    public function eliminarDefinitivamenteEjecutar(int $id)
+    {
+        $pelicula = Pelicula::onlyTrashed()->findOrFail($id);
+
+        try {
+            DB::transaction(function() use ($pelicula) {
+                $pelicula->generos()->detach();
+                $pelicula->forceDelete();
+            });
+
+            return redirect()
+                ->route('admin.peliculas.papelera')
+                ->with('status.type', 'success')
+                ->with('status.message', 'La película fue eliminada correctamente.');
+        } catch(\Throwable $e) {
+
+            // Guardamos en el Debugbar el mensaje de error.
+            Debugbar::error($e);
+
+            // En producción, probablemente querríamos guardar esto en algún log.
+
+            return redirect()
+                ->route('admin.peliculas.papelera')
+                ->with('status.message', 'Ocurrió un error inesperado. La película <b>' . e($pelicula->titulo) . '</b> no pudo ser eliminada definitivamente.')
+                ->with('status.type', 'danger')
+                ->withInput(); // withInput() envía los datos del form para que podamos accederlos con "old()".
+        }
     }
 }

@@ -45,10 +45,6 @@ class EsMayorDeEdad
             return redirect()->route('confirmar-mayoria-edad.form', ['id' => $id]);
         }
 
-//        if(Pelicula::findOrFail($request->route()->parameter('id'))->categoria_id == 4 && !\Session::has('mayorDeEdad')) {
-//            return redirect()->route('confirmar-mayoria-edad.form');
-//        }
-
         // Que siga su camino.
         return $next($request);
     }
