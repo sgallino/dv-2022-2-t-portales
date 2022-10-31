@@ -156,6 +156,10 @@ Route::post('peliculas/{id}/confirmar-mayoria-edad', [\App\Http\Controllers\Conf
     ->middleware('auth')
     ->name('confirmar-mayoria-edad.ejecutar');
 
+Route::post('peliculas/{id}/reservar', [\App\Http\Controllers\ReservarPeliculaController::class, 'reservarEjecutar'])
+    ->middleware('auth')
+    ->name('peliculas.reservar.ejecutar');
+
 //Route::get('admin/peliculas', [\App\Http\Controllers\AdminPeliculasController::class, 'index'])
 //    ->name('admin.peliculas.listado')
 //    // Restringimos el acceso a solo usuarios autenticados.

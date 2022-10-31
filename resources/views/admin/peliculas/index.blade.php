@@ -63,9 +63,13 @@
         <td>{{ $pelicula->categoria->abreviatura }}</td>
         <td>{{ $pelicula->fecha_estreno }}</td>
         <td>
-            <a href="{{ route('admin.peliculas.ver', ['id' => $pelicula->pelicula_id]) }}" class="btn btn-primary">Ver</a>
-            <a href="{{ route('admin.peliculas.editar.form', ['id' => $pelicula->pelicula_id]) }}" class="btn btn-secondary">Editar</a>
-            <a href="{{ route('admin.peliculas.eliminar.confirmar', ['id' => $pelicula->pelicula_id]) }}" class="btn btn-danger">Eliminar</a>
+            <a href="{{ route('admin.peliculas.ver', ['id' => $pelicula->pelicula_id]) }}" class="btn btn-primary mb-2">Ver</a>
+            <a href="{{ route('admin.peliculas.editar.form', ['id' => $pelicula->pelicula_id]) }}" class="btn btn-secondary mb-2">Editar</a>
+            <a href="{{ route('admin.peliculas.eliminar.confirmar', ['id' => $pelicula->pelicula_id]) }}" class="btn btn-danger mb-2">Eliminar</a>
+            <form action="{{ route('peliculas.reservar.ejecutar', ['id' => $pelicula->pelicula_id]) }}" method="post">
+                @csrf
+                <button type="submit" class="btn btn-dark">Reservar</button>
+            </form>
         </td>
     </tr>
     @endforeach
